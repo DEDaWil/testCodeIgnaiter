@@ -44,7 +44,6 @@ class TestController extends Controller
             return redirect()->to('/test')->with('success', 'Запись успешно добавлена');
         }
 
-        // В случае ошибки валидации возвращаемся с ошибками
         return redirect()->back()->withInput()->with('errors', $this->testModel->errors());
     }
 
@@ -78,7 +77,13 @@ class TestController extends Controller
 
     public function delete($id): \CodeIgniter\HTTP\RedirectResponse
     {
+        $test = $this->testModel->find($id);
+
         if ($this->testModel->delete($id)) {
+            $filePath = 'test/' . $test['name'] . '.xml';
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
             return redirect()->to('/test')->with('success', 'Запись успешно удалена');
         }
 
@@ -89,8 +94,7 @@ class TestController extends Controller
     {
         $test = $this->testModel->find($id);
         $filePath = 'test/' . $test['name'] . '.xml';
-//        dd($filePath);
-        // Проверьте, существует ли файл
+
         if (!file_exists($filePath)) {
             return $this->response->setStatusCode(404)->setBody("File not found.");
         }
@@ -109,68 +113,30 @@ class TestController extends Controller
         $dom->standalone = true;
         $dom->formatOutput = true;
 
-        // Корневой элемент <REMITTable2> с пространством имен
         $REMITTable2 = $dom->createElement('REMITTable2');
         $REMITTable2->setAttribute('xmlns', 'http://www.acer.europa.eu/REMIT/REMITTable2_V1.xsd');
         $dom->appendChild($REMITTable2);
 
-        $this->addGroupWithElements($dom, $REMITTable2, 'reportingEntityID', [$test['reportingEntityIDType'] => $test['reportingEntityID']]);
+        $this->addGroupWithElements($dom, $REMITTable2, 'reportingEntityID', [
+            $test['reportingEntityIDType'] => $test['reportingEntityID']
+        ]);
 
         $tradeList = $dom->createElement('TradeList');
         $nonStandardContractReport = $dom->createElement('nonStandardContractReport');
 
         $nonStandardContractReport->appendChild($dom->createElement('RecordSeqNumber', $test['recordSeqNumber']));
-        $nonStandardContractReport->appendChild($dom->createElement('tradingCapacity', $test['tradingCapacity']));
-        $nonStandardContractReport->appendChild($dom->createElement('buySellIndicator', $test['buySellIndicator']));
-        $nonStandardContractReport->appendChild($dom->createElement('contractId', $test['contractId']));
-        $nonStandardContractReport->appendChild($dom->createElement('contractDate', $test['contractDate']));
-        $nonStandardContractReport->appendChild($dom->createElement('contractType', $test['contractType']));
-        $nonStandardContractReport->appendChild($dom->createElement('energyCommodity', $test['energyCommodity']));
-        $nonStandardContractReport->appendChild($dom->createElement('settlementMethod', $test['settlementMethod']));
-        $nonStandardContractReport->appendChild($dom->createElement('deliveryPointOrZone', $test['deliveryPointOrZone']));
-        $nonStandardContractReport->appendChild($dom->createElement('deliveryStartDate', $test['deliveryStartDate']));
-        $nonStandardContractReport->appendChild($dom->createElement('deliveryEndDate', $test['deliveryEndDate']));
-        $nonStandardContractReport->appendChild($dom->createElement('actionType', $test['actionType']));
-
-        if ($test['loadType']) {
-            $nonStandardContractReport->appendChild($dom->createElement('loadType', $test['loadType']));
-        }
-        if ($test['volumeOptionality']) {
-            $nonStandardContractReport->appendChild($dom->createElement('volumeOptionality', $test['volumeOptionality']));
-        }
-        if ($test['typeOfIndexPrice']) {
-            $nonStandardContractReport->appendChild($dom->createElement('typeOfIndexPrice', $test['typeOfIndexPrice']));
-        }
-
         $this->addGroupWithElements($dom, $nonStandardContractReport, 'idOfMarketParticipant', [
             $test['idOfMarketParticipantType'] => $test['idOfMarketParticipant']
         ]);
         $this->addGroupWithElements($dom, $nonStandardContractReport, 'otherMarketParticipant', [
             $test['otherMarketParticipantType'] => $test['otherMarketParticipant']
         ]);
-        if ($test['estimatedNotionalAmountValue'] AND $test['estimatedNotionalAmountCurrency']) {
-            $this->addGroupWithElements($dom, $nonStandardContractReport, 'estimatedNotionalAmount', [
-                'value' => $test['estimatedNotionalAmountValue'],
-                'currency' => $test['estimatedNotionalAmountCurrency'],
-            ]);
-        }
-        if ($test['totalNotionalContractQuantityValue'] AND $test['totalNotionalContractQuantityUnit']) {
-            $this->addGroupWithElements($dom, $nonStandardContractReport, 'totalNotionalContractQuantity', [
-                'value' => $test['totalNotionalContractQuantityValue'],
-                'unit' => $test['totalNotionalContractQuantityUnit'],
-            ]);
-        }
-        if ($test['fixingIndex'] AND ($test['fixingIndexType'] OR $test['fixingIndexSource'] OR $test['firstFixingDate'] OR $test['lastFixingDate'] OR $test['fixingFrequency'])) {
-            $this->addGroupWithElements($dom, $nonStandardContractReport, 'fixingIndexDetails', [
-                'fixingIndex' => $test['fixingIndex'],
-                'fixingIndexType' => $test['fixingIndexType'],
-                'fixingIndexSource' => $test['fixingIndexSource'],
-                'firstFixingDate' => $test['firstFixingDate'],
-                'lastFixingDate' => $test['lastFixingDate'],
-                'fixingFrequency' => $test['fixingFrequency'],
-            ]);
-        }
-
+        $nonStandardContractReport->appendChild($dom->createElement('tradingCapacity', $test['tradingCapacity']));
+        $nonStandardContractReport->appendChild($dom->createElement('buySellIndicator', $test['buySellIndicator']));
+        $nonStandardContractReport->appendChild($dom->createElement('contractId', $test['contractId']));
+        $nonStandardContractReport->appendChild($dom->createElement('contractDate', $test['contractDate']));
+        $nonStandardContractReport->appendChild($dom->createElement('contractType', $test['contractType']));
+        $nonStandardContractReport->appendChild($dom->createElement('energyCommodity', $test['energyCommodity']));
         if ($test['priceFormula']) {
             $this->addGroupWithElements($dom, $nonStandardContractReport, 'priceOrPriceFormula', [
                 'priceFormula' => $test['priceFormula']
@@ -183,6 +149,42 @@ class TestController extends Controller
             ]);
             $nonStandardContractReport->appendChild($priceOrPriceFormula);
         }
+        if ($test['estimatedNotionalAmountValue'] AND $test['estimatedNotionalAmountCurrency']) {
+            $this->addGroupWithElements($dom, $nonStandardContractReport, 'estimatedNotionalAmount', [
+                'value' => $test['estimatedNotionalAmountValue'],
+                'currency' => $test['estimatedNotionalAmountCurrency'],
+            ]);
+        }
+        if ($test['totalNotionalContractQuantityValue'] AND $test['totalNotionalContractQuantityUnit']) {
+            $this->addGroupWithElements($dom, $nonStandardContractReport, 'totalNotionalContractQuantity', [
+                'value' => $test['totalNotionalContractQuantityValue'],
+                'unit' => $test['totalNotionalContractQuantityUnit'],
+            ]);
+        }
+        if ($test['volumeOptionality']) {
+            $nonStandardContractReport->appendChild($dom->createElement('volumeOptionality', $test['volumeOptionality']));
+        }
+        if ($test['typeOfIndexPrice']) {
+            $nonStandardContractReport->appendChild($dom->createElement('typeOfIndexPrice', $test['typeOfIndexPrice']));
+        }
+        if ($test['fixingIndex'] AND ($test['fixingIndexType'] OR $test['fixingIndexSource'] OR $test['firstFixingDate'] OR $test['lastFixingDate'] OR $test['fixingFrequency'])) {
+            $this->addGroupWithElements($dom, $nonStandardContractReport, 'fixingIndexDetails', [
+                'fixingIndex' => $test['fixingIndex'],
+                'fixingIndexType' => $test['fixingIndexType'],
+                'fixingIndexSource' => $test['fixingIndexSource'],
+                'firstFixingDate' => $test['firstFixingDate'],
+                'lastFixingDate' => $test['lastFixingDate'],
+                'fixingFrequency' => $test['fixingFrequency'],
+            ]);
+        }
+        $nonStandardContractReport->appendChild($dom->createElement('settlementMethod', $test['settlementMethod']));
+        $nonStandardContractReport->appendChild($dom->createElement('deliveryPointOrZone', $test['deliveryPointOrZone']));
+        $nonStandardContractReport->appendChild($dom->createElement('deliveryStartDate', $test['deliveryStartDate']));
+        $nonStandardContractReport->appendChild($dom->createElement('deliveryEndDate', $test['deliveryEndDate']));
+        if ($test['loadType']) {
+            $nonStandardContractReport->appendChild($dom->createElement('loadType', $test['loadType']));
+        }
+        $nonStandardContractReport->appendChild($dom->createElement('actionType', $test['actionType']));
 
         $tradeList->appendChild($nonStandardContractReport);;
         $REMITTable2->appendChild($tradeList);
@@ -190,10 +192,10 @@ class TestController extends Controller
         $dom->save('test/' . $test['name'] . '.xml');
 
 //         Валидация по XSD
-//        libxml_use_internal_errors(true);
-//        if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
-//            throw new Exception('XML не соответствует XSD схеме.');
-//        }
+        libxml_use_internal_errors(true);
+        if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
+            throw new Exception('XML не соответствует XSD схеме.');
+        }
     }
 
     private function addGroupWithElements($dom, $parent, $groupName, $elements): void

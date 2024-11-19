@@ -213,8 +213,8 @@
     <label for="volumeOptionality">Volume Optionality:</label>
     <select name="volumeOptionality" id="volumeOptionality">
         <option value="" <?= !isset($test['volumeOptionality']) ? 'selected' : '' ?>>Выберите тип</option>
-        <option value="v" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'V' ? 'selected' : '' ?>>V</option>
-        <option value="f" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'F' ? 'selected' : '' ?>>F</option>
+        <option value="V" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'V' ? 'selected' : '' ?>>V</option>
+        <option value="F" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'F' ? 'selected' : '' ?>>F</option>
         <option value="M" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'M' ? 'selected' : '' ?>>M</option>
         <option value="C" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'C' ? 'selected' : '' ?>>C</option>
         <option value="O" <?= old('volumeOptionality', $test['volumeOptionality'] ?? '') == 'O' ? 'selected' : '' ?>>O</option>
