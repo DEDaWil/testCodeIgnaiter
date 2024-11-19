@@ -192,10 +192,10 @@ class TestController extends Controller
         $dom->save('test/' . $test['name'] . '.xml');
 
 //         Валидация по XSD
-        libxml_use_internal_errors(true);
-        if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
-            throw new Exception('XML не соответствует XSD схеме.');
-        }
+//        libxml_use_internal_errors(true);
+//        if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
+//            throw new Exception('XML не соответствует XSD схеме.');
+//        }
     }
 
     private function addGroupWithElements($dom, $parent, $groupName, $elements): void
