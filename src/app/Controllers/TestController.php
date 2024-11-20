@@ -104,11 +104,10 @@ class TestController extends Controller
 
     /**
      * @throws DOMException
+     * @throws Exception
      */
     public function createXML($test): void
     {
-//        $test = $this->testModel->find($id);
-
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->standalone = true;
         $dom->formatOutput = true;
@@ -191,11 +190,58 @@ class TestController extends Controller
 
         $dom->save('test/' . $test['name'] . '.xml');
 
+        $dom->load('test/' . $test['name'] . '.xml');
+        libxml_use_internal_errors(true);
+//        try {
+            if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
+                // Если валидация не прошла, выбрасываем исключение с деталями
+                $errors = libxml_get_errors(); // Получаем список ошибок
+                $errorMessages = '';
+//dd($errors);
+                foreach ($errors as $error) {
+                    $errorMessages .= $this->formatLibXMLError($error) . "\n"; // Форматируем ошибки
+                }
+
+                libxml_clear_errors(); // Очищаем внутренний буфер ошибок
+                throw new Exception("XML не соответствует XSD схеме:\n" . $errorMessages);
+            }
+
+//            echo "XML валидный!";
+//        } catch (Exception $e) {
+//            echo "Ошибка: " . $e->getMessage(); // Выводим сообщение об ошибке
+//        }
+
+
+
+
 //         Валидация по XSD
-//        libxml_use_internal_errors(true);
 //        if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
 //            throw new Exception('XML не соответствует XSD схеме.');
 //        }
+    }
+
+    private function formatLibXMLError($error)
+    {
+        $return = "Ошибка [{$error->code}]: ";
+        switch ($error->level) {
+            case LIBXML_ERR_WARNING:
+                $return .= "Предупреждение ";
+                break;
+            case LIBXML_ERR_ERROR:
+                $return .= "Ошибка ";
+                break;
+            case LIBXML_ERR_FATAL:
+                $return .= "Фатальная ошибка ";
+                break;
+        }
+        $return .= trim($error->message);
+
+        if ($error->file) {
+            $return .= " в файле {$error->file}";
+        }
+
+        $return .= " на строке {$error->line}, колонка {$error->column}.";
+        return $return;
     }
 
     private function addGroupWithElements($dom, $parent, $groupName, $elements): void

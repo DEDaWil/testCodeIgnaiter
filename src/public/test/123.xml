@@ -1,30 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <REMITTable2 xmlns="http://www.acer.europa.eu/REMIT/REMITTable2_V1.xsd">
   <reportingEntityID>
-    <ace>12345678901Z</ace>
+    <ace>12345678901Zdasdas</ace>
   </reportingEntityID>
   <TradeList>
     <nonStandardContractReport>
       <RecordSeqNumber>123</RecordSeqNumber>
-      <tradingCapacity>P</tradingCapacity>
-      <buySellIndicator>B</buySellIndicator>
-      <contractId>123</contractId>
-      <contractDate>2024-11-17</contractDate>
-      <contractType>SO</contractType>
-      <energyCommodity>NG</energyCommodity>
-      <settlementMethod>P</settlementMethod>
-      <deliveryPointOrZone>123456789012345X</deliveryPointOrZone>
-      <deliveryStartDate>2024-11-21</deliveryStartDate>
-      <deliveryEndDate>2024-11-22</deliveryEndDate>
-      <actionType>E</actionType>
-      <loadType>SH</loadType>
-      <typeOfIndexPrice>I</typeOfIndexPrice>
       <idOfMarketParticipant>
         <ace>12345678901Z</ace>
       </idOfMarketParticipant>
       <otherMarketParticipant>
         <ace>12345678901Z</ace>
       </otherMarketParticipant>
+      <tradingCapacity>P</tradingCapacity>
+      <buySellIndicator>B</buySellIndicator>
+      <contractId>123</contractId>
+      <contractDate>2024-11-17</contractDate>
+      <contractType>SO</contractType>
+      <energyCommodity>NG</energyCommodity>
+      <priceOrPriceFormula>
+        <priceFormula>123321</priceFormula>
+      </priceOrPriceFormula>
       <estimatedNotionalAmount>
         <value>123</value>
         <currency>RON</currency>
@@ -33,17 +29,19 @@
         <value>123</value>
         <unit>GWh</unit>
       </totalNotionalContractQuantity>
+      <typeOfIndexPrice>I</typeOfIndexPrice>
       <fixingIndexDetails>
         <fixingIndex>123</fixingIndex>
         <fixingIndexType>SO</fixingIndexType>
         <fixingIndexSource>123</fixingIndexSource>
-        <firstFixingDate>0000-00-00</firstFixingDate>
-        <lastFixingDate>0000-00-00</lastFixingDate>
         <fixingFrequency>A</fixingFrequency>
       </fixingIndexDetails>
-      <priceOrPriceFormula>
-        <priceFormula>123321</priceFormula>
-      </priceOrPriceFormula>
+      <settlementMethod>P</settlementMethod>
+      <deliveryPointOrZone>123456789012345X</deliveryPointOrZone>
+      <deliveryStartDate>2024-11-21</deliveryStartDate>
+      <deliveryEndDate>2024-11-22</deliveryEndDate>
+      <loadType>SH</loadType>
+      <actionType>E</actionType>
     </nonStandardContractReport>
   </TradeList>
 </REMITTable2>
