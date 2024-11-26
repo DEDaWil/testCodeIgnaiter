@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\TestModel;
 use CodeIgniter\Controller;
 use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\RedirectResponse;
 use DOMDocument;
 use DOMException;
 use Exception;
@@ -38,7 +39,15 @@ class TestController extends Controller
     {
         $data = $this->request->getPost();
 
-        $this->createXML($data);
+        $xmlContent = $this->createXML($data);
+
+        $xsdPath = APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd';
+
+        $errors = $this->validateXmlAgainstXsd($xmlContent, $xsdPath);
+
+        if (!empty($errors)) {
+            return redirect()->back()->withInput()->with('errors', $errors);
+        }
 
         if ($this->testModel->insert($data)) {
             return redirect()->to('/test')->with('success', 'Запись успешно добавлена');
@@ -66,7 +75,15 @@ class TestController extends Controller
     {
         $data = $this->request->getPost();
 
-        $this->createXML($data);
+        $xmlContent = $this->createXML($data);
+
+        $xsdPath = APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd';
+
+        $errors = $this->validateXmlAgainstXsd($xmlContent, $xsdPath);
+
+        if (!empty($errors)) {
+            return redirect()->back()->withInput()->with('errors', $errors);
+        }
 
         if ($this->testModel->update($id, $data)) {
             return redirect()->to('/test')->with('success', 'Запись успешно обновлена');
@@ -75,7 +92,7 @@ class TestController extends Controller
         return redirect()->back()->withInput()->with('errors', $this->testModel->errors());
     }
 
-    public function delete($id): \CodeIgniter\HTTP\RedirectResponse
+    public function delete($id): RedirectResponse
     {
         $test = $this->testModel->find($id);
 
@@ -106,7 +123,7 @@ class TestController extends Controller
      * @throws DOMException
      * @throws Exception
      */
-    public function createXML($test): void
+    public function createXML($test): string
     {
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->standalone = true;
@@ -189,51 +206,32 @@ class TestController extends Controller
         $REMITTable2->appendChild($tradeList);
 
         $dom->save('test/' . $test['name'] . '.xml');
-
-        $dom->load('test/' . $test['name'] . '.xml');
-        libxml_use_internal_errors(true);
-//        try {
-            if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
-                // Если валидация не прошла, выбрасываем исключение с деталями
-                $errors = libxml_get_errors(); // Получаем список ошибок
-                $errorMessages = '';
-
-                foreach ($errors as $error) {
-                    $errorMessages .= $this->formatLibXMLError($error) . "\n"; // Форматируем ошибки
-                }
-
-                libxml_clear_errors(); // Очищаем внутренний буфер ошибок
-                throw new Exception("XML не соответствует XSD схеме:\n" . $errorMessages);
-            }
-
-//            echo "XML валидный!";
-//        } catch (Exception $e) {
-//            echo "Ошибка: " . $e->getMessage(); // Выводим сообщение об ошибке
-//        }
+        return $dom->saveXML();
     }
 
-    private function formatLibXMLError($error)
+    public function validateXmlAgainstXsd(string $xmlContent, string $xsdPath): array
     {
-        $return = "Ошибка [{$error->code}]: ";
-        switch ($error->level) {
-            case LIBXML_ERR_WARNING:
-                $return .= "Предупреждение ";
-                break;
-            case LIBXML_ERR_ERROR:
-                $return .= "Ошибка ";
-                break;
-            case LIBXML_ERR_FATAL:
-                $return .= "Фатальная ошибка ";
-                break;
-        }
-        $return .= trim($error->message);
+        $errors = [];
 
-        if ($error->file) {
-            $return .= " в файле {$error->file}";
+        libxml_use_internal_errors(true);
+
+        $xml = new \DOMDocument();
+        $xml->loadXML($xmlContent);
+
+        if (!$xml->schemaValidate($xsdPath)) {
+            $errors = array_map(function ($error) {
+                return $this->formatLibxmlError($error);
+            }, libxml_get_errors());
         }
 
-        $return .= " на строке {$error->line}, колонка {$error->column}.";
-        return $return;
+        libxml_clear_errors();
+
+        return $errors;
+    }
+
+    private function formatLibxmlError($error): string
+    {
+        return trim("Line {$error->line}, Column {$error->column}: {$error->message}");
     }
 
     private function addGroupWithElements($dom, $parent, $groupName, $elements): void
