@@ -197,7 +197,7 @@ class TestController extends Controller
                 // Если валидация не прошла, выбрасываем исключение с деталями
                 $errors = libxml_get_errors(); // Получаем список ошибок
                 $errorMessages = '';
-//dd($errors);
+
                 foreach ($errors as $error) {
                     $errorMessages .= $this->formatLibXMLError($error) . "\n"; // Форматируем ошибки
                 }
@@ -209,14 +209,6 @@ class TestController extends Controller
 //            echo "XML валидный!";
 //        } catch (Exception $e) {
 //            echo "Ошибка: " . $e->getMessage(); // Выводим сообщение об ошибке
-//        }
-
-
-
-
-//         Валидация по XSD
-//        if (!$dom->schemaValidate(APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd')) {
-//            throw new Exception('XML не соответствует XSD схеме.');
 //        }
     }
 
