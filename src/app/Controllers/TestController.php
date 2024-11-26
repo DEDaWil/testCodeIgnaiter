@@ -13,6 +13,8 @@ use ReflectionException;
 
 class TestController extends Controller
 {
+    private const XSD = APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd';
+
     protected TestModel $testModel;
 
     public function __construct()
@@ -41,9 +43,7 @@ class TestController extends Controller
 
         $xmlContent = $this->createXML($data);
 
-        $xsdPath = APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd';
-
-        $errors = $this->validateXmlAgainstXsd($xmlContent, $xsdPath);
+        $errors = $this->validateXmlAgainstXsd($xmlContent);
 
         if (!empty($errors)) {
             return redirect()->back()->withInput()->with('errors', $errors);
@@ -77,9 +77,7 @@ class TestController extends Controller
 
         $xmlContent = $this->createXML($data);
 
-        $xsdPath = APPPATH . 'Validation/Schemas/REMITTable2_V1-1.xsd';
-
-        $errors = $this->validateXmlAgainstXsd($xmlContent, $xsdPath);
+        $errors = $this->validateXmlAgainstXsd($xmlContent);
 
         if (!empty($errors)) {
             return redirect()->back()->withInput()->with('errors', $errors);
@@ -209,7 +207,7 @@ class TestController extends Controller
         return $dom->saveXML();
     }
 
-    public function validateXmlAgainstXsd(string $xmlContent, string $xsdPath): array
+    public function validateXmlAgainstXsd(string $xmlContent): array
     {
         $errors = [];
 
@@ -218,7 +216,7 @@ class TestController extends Controller
         $xml = new \DOMDocument();
         $xml->loadXML($xmlContent);
 
-        if (!$xml->schemaValidate($xsdPath)) {
+        if (!$xml->schemaValidate(self::XSD)) {
             $errors = array_map(function ($error) {
                 return $this->formatLibxmlError($error);
             }, libxml_get_errors());
